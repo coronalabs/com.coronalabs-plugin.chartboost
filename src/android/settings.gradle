@@ -1,0 +1,2 @@
+rootProject.name = "Chartboost"
+include("app", "plugin")

@@ -1,0 +1,24 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 29
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+dependencies {
+    implementation ':Corona@aar'
+}
+
+repositories {
+    maven { url "https://chartboostmobile.bintray.com/Chartboost" }
+}
+dependencies {
+    implementation 'com.chartboost:chartboost-sdk:8.0.3'
+}
+

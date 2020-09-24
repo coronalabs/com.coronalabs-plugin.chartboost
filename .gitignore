@@ -1,1 +1,7 @@
 plugins/*.tgz
+.gradle/
+*xcuser*
+src/ios/BuiltPlugin
+src/ios/build
+libplugin_*.a
+

@@ -1,0 +1,11 @@
+{"amazon": {
+    "for_kids": true,
+    "active": true,
+    "providers": {
+      "chartboost": {
+        "appId": "5dcea58a993ef6085237da5d",
+        "appSig": "566a91ea2d948019bdf7c99af8c1c6a3436adf9e"
+      }
+    }
+  }
+}
