@@ -3,5 +3,5 @@ plugins/*.tgz
 *xcuser*
 src/ios/BuiltPlugin
 src/ios/build
-libplugin_*.a
+src/ios/libplugin_*.a
 

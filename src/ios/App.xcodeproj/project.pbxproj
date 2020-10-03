@@ -67,6 +67,7 @@
 		F58AD8FB2511DEDB00CB3982 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F58AD8FA2511DEDB00CB3982 /* WebKit.framework */; };
 		F5BB41531BC42ACF0033F6FA /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5BB41521BC42ACF0033F6FA /* CoreText.framework */; };
 		F5C9F4811ED39AD100D34A2D /* _CoronaSplashScreen.png in Resources */ = {isa = PBXBuildFile; fileRef = C277D3B51EBB9F8E00966BA1 /* _CoronaSplashScreen.png */; };
+		F5D803812528964B0090BC72 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5D803802528964B0090BC72 /* AppTrackingTransparency.framework */; };
 		F5E548091BE7FF0200091810 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5E548081BE7FF0200091810 /* GameController.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
@@ -143,6 +144,7 @@
 		F58AD8F82511DECB00CB3982 /* Chartboost.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Chartboost.framework; path = EmbeddedFrameworks/Chartboost.framework; sourceTree = "<group>"; };
 		F58AD8FA2511DEDB00CB3982 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		F5BB41521BC42ACF0033F6FA /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		F5D803802528964B0090BC72 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = SDKROOT; };
 		F5E548081BE7FF0200091810 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -151,6 +153,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F5D803812528964B0090BC72 /* AppTrackingTransparency.framework in Frameworks */,
 				F58AD8FB2511DEDB00CB3982 /* WebKit.framework in Frameworks */,
 				A484118915128D5D0074BD57 /* StoreKit.framework in Frameworks */,
 				F58AD8F92511DECB00CB3982 /* Chartboost.framework in Frameworks */,
@@ -237,6 +240,7 @@
 		A484111C15114F700074BD57 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F5D803802528964B0090BC72 /* AppTrackingTransparency.framework */,
 				F58AD8FA2511DEDB00CB3982 /* WebKit.framework */,
 				F58AD8F82511DECB00CB3982 /* Chartboost.framework */,
 				E640B2F31BFC00BA0031FAE9 /* Photos.framework */,

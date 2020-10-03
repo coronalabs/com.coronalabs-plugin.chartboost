@@ -17,6 +17,7 @@
 
 #import "ChartboostPlugin.h"
 #import <Chartboost/Chartboost.h>
+#include <AppTrackingTransparency/AppTrackingTransparency.h>
 
 // some macros to make life easier, and code more readable
 #define UTF8StringWithFormat(format, ...) [[NSString stringWithFormat:format, ##__VA_ARGS__] UTF8String]
@@ -395,9 +396,24 @@ ChartboostPlugin::init( lua_State *L )
 	}
 	
 	// initialize the SDK
-	[Chartboost startWithAppId:@(appId) appSignature:@(appSig) completion:^(BOOL status) {
-		[chartboostDelegate didInitialize:status];
-	}];
+	bool noAtt = true;
+	if (@available(iOS 14, tvOS 14, *)) {
+		if([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSUserTrackingUsageDescription"]) {
+			noAtt = false;
+			[ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {
+				[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+					[Chartboost startWithAppId:@(appId) appSignature:@(appSig) completion:^(BOOL status) {
+						[chartboostDelegate didInitialize:status];
+					}];
+				}];
+			}];
+		}
+	}
+	if(noAtt) {
+		[Chartboost startWithAppId:@(appId) appSignature:@(appSig) completion:^(BOOL status) {
+			[chartboostDelegate didInitialize:status];
+		}];
+	}
 	
 	
 	// all settings must be done *after* SDK init

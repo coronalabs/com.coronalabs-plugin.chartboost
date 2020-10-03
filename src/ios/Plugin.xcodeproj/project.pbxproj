@@ -11,6 +11,7 @@
 		F5987CE92511435600D1D08F /* Chartboost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5987CE82511435600D1D08F /* Chartboost.framework */; };
 		F5987CEB2511438C00D1D08F /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5987CEA2511438C00D1D08F /* StoreKit.framework */; };
 		F5987CED2511439000D1D08F /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5987CEC2511439000D1D08F /* WebKit.framework */; };
+		F5D8037E252896350090BC72 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5D8037D252896350090BC72 /* AppTrackingTransparency.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,6 +34,7 @@
 		F5987CE82511435600D1D08F /* Chartboost.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Chartboost.framework; path = EmbeddedFrameworks/Chartboost.framework; sourceTree = "<group>"; };
 		F5987CEA2511438C00D1D08F /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
 		F5987CEC2511439000D1D08F /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/WebKit.framework; sourceTree = DEVELOPER_DIR; };
+		F5D8037D252896350090BC72 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,6 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F5D8037E252896350090BC72 /* AppTrackingTransparency.framework in Frameworks */,
 				F5987CED2511439000D1D08F /* WebKit.framework in Frameworks */,
 				F5987CEB2511438C00D1D08F /* StoreKit.framework in Frameworks */,
 				F5987CE92511435600D1D08F /* Chartboost.framework in Frameworks */,
@@ -87,6 +90,7 @@
 		F5987CE72511435600D1D08F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F5D8037D252896350090BC72 /* AppTrackingTransparency.framework */,
 				F5987CEC2511439000D1D08F /* WebKit.framework */,
 				F5987CEA2511438C00D1D08F /* StoreKit.framework */,
 				F5987CE82511435600D1D08F /* Chartboost.framework */,
