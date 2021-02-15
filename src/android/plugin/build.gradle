@@ -15,10 +15,29 @@ dependencies {
     implementation ':Corona@aar'
 }
 
+
+task extractPluginJar() {
+    group "Solar2Dev"
+    dependsOn assemble
+    doLast {
+        copy {
+            from {
+                zipTree("$buildDir/outputs/aar/${project.name}-release.aar").matching {
+                    include 'classes.jar'
+                }.singleFile
+            }
+            into "$buildDir/outputs/"
+            String packageName = new XmlSlurper().parse(file('src/main/AndroidManifest.xml')).@package.text()
+            rename "classes.jar", "${packageName}.jar"
+        }
+    }
+}
+
+
 repositories {
     maven { url "https://chartboostmobile.bintray.com/Chartboost" }
 }
 dependencies {
-    implementation 'com.chartboost:chartboost-sdk:8.0.3'
+    implementation 'com.chartboost:chartboost-sdk:8.2.0'
 }
 

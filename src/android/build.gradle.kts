@@ -14,7 +14,7 @@ allprojects {
     repositories {
         google()
         jcenter()
-        // maven(url = "https:// some custom repo")
+        maven(url = "https://chartboostmobile.bintray.com/Chartboost")
         val nativeDir = if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             System.getenv("CORONA_ROOT")
         } else {

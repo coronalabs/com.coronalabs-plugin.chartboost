@@ -7,36 +7,34 @@
 
 package plugin.chartboost;
 
-import com.naef.jnlua.LuaState;
-import com.naef.jnlua.JavaFunction;
-import com.naef.jnlua.LuaType;
-import com.naef.jnlua.NamedJavaFunction;
-
-import com.ansca.corona.CoronaLua;
-import com.ansca.corona.CoronaLuaEvent;
-import com.ansca.corona.CoronaRuntimeTask;
-import com.ansca.corona.CoronaRuntimeTaskDispatcher;
-import com.ansca.corona.CoronaActivity;
-import com.ansca.corona.CoronaEnvironment;
-import com.ansca.corona.CoronaRuntime;
-import com.ansca.corona.CoronaRuntimeListener;
-import com.ansca.corona.CoronaBeacon;
-
 import android.content.Context;
 import android.util.Log;
+
+import com.ansca.corona.CoronaActivity;
+import com.ansca.corona.CoronaEnvironment;
+import com.ansca.corona.CoronaLua;
+import com.ansca.corona.CoronaLuaEvent;
+import com.ansca.corona.CoronaRuntime;
+import com.ansca.corona.CoronaRuntimeListener;
+import com.ansca.corona.CoronaRuntimeTask;
+import com.ansca.corona.CoronaRuntimeTaskDispatcher;
+import com.chartboost.sdk.CBLocation;
+import com.chartboost.sdk.Chartboost;
+import com.chartboost.sdk.ChartboostDelegate;
+import com.chartboost.sdk.Model.CBError;
+import com.naef.jnlua.JavaFunction;
+import com.naef.jnlua.LuaState;
+import com.naef.jnlua.LuaType;
+import com.naef.jnlua.NamedJavaFunction;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 // Chartboost imports
-import com.chartboost.sdk.Chartboost;
-import com.chartboost.sdk.CBLocation;
-import com.chartboost.sdk.ChartboostDelegate;
-import com.chartboost.sdk.Model.CBError;
 
 /**
  * Implements the Lua interface for the Chartboost plugin.
@@ -44,7 +42,7 @@ import com.chartboost.sdk.Model.CBError;
  * Only one instance of this class will be created by Corona for the lifetime of the application.
  * This instance will be re-used for every new Corona activity that gets created.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "RedundantSuppression"})
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 {
   private static final String PLUGIN_NAME        = "plugin.chartboost";
@@ -545,7 +543,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
         return 0;
       }
 
-      String adType = null;
+      String adType;
       String namedLocation = null;
 
       // Get the ad type
@@ -640,7 +638,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
         return 0;
       }
 
-      String adType = null;
+      String adType;
       String namedLocation = null;
 
       // Get the ad type
@@ -765,7 +763,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
         return 0;
       }
 
-      String adType = null;
+      String adType;
       String namedLocation = null;
 
       // Get the ad type
