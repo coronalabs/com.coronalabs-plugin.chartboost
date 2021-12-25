@@ -1,8 +1,8 @@
 repositories {
-    maven { url "https://chartboostmobile.bintray.com/Chartboost" }
+  mavenCentral()
 }
 dependencies {
-    implementation 'com.chartboost:chartboost-sdk:8.2.0'
+  implementation 'com.chartboost:chartboost-sdk:8.3.0'
 }
 android {
    compileOptions {

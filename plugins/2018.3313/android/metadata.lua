@@ -3,7 +3,7 @@ local metadata =
     plugin =
     {
         format = 'jar',
-        manifest = 
+        manifest =
         {
             permissions = {},
             usesPermissions =
@@ -12,7 +12,7 @@ local metadata =
                 "android.permission.ACCESS_NETWORK_STATE",
                 {name="android.permission.WRITE_EXTERNAL_STORAGE", maxSdkVersion=18},
             },
-            usesFeatures = 
+            usesFeatures =
             {
             },
             applicationChildElements =

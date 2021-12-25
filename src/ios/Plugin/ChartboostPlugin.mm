@@ -29,7 +29,7 @@
 // ----------------------------------------------------------------------------
 
 #define PLUGIN_NAME        "plugin.chartboost"
-#define PLUGIN_VERSION     "2.0.9"
+#define PLUGIN_VERSION     "2.1.0"
 #define PLUGIN_SDK_VERSION [Chartboost getSDKVersion]
 
 static const char EVENT_NAME[]    = "adsRequest";

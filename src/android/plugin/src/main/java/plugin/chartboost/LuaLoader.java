@@ -46,7 +46,7 @@ import java.util.Map;
 public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 {
   private static final String PLUGIN_NAME        = "plugin.chartboost";
-  private static final String PLUGIN_VERSION     = "2.0.9";
+  private static final String PLUGIN_VERSION     = "2.1.0";
   private static final String PLUGIN_SDK_VERSION = Chartboost.getSDKVersion();
 
   private static final String EVENT_NAME    = "adsRequest";
