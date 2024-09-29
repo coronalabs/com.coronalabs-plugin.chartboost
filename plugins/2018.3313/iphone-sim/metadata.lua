@@ -6,7 +6,7 @@ local metadata =
 		staticLibs = { 'plugin_chartboost', },
 		frameworks = { 'ChartboostSDK', },
 		frameworksOptional = { 'AppTrackingTransparency', },
-		-- usesSwift = true,
+		usesSwift = true,
 	},
 }
 
