@@ -18,8 +18,8 @@ widget.setTheme( "widget_theme_ios" )
 
 -- forward declarations
 local sdkReady = false
-local appId = "n/a"
-local appSig = "n/a"
+local appId = "62472ac1ddd544255d577b64"
+local appSig = "51ead858631ad979ce72a1e15beb422b2ca8560b"
 local platformName = system.getInfo("platformName")
 
 local chartboostLogo = display.newImage("chartboostlogo.png")

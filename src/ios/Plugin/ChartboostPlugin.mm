@@ -16,7 +16,7 @@
 #import "CoronaLibrary.h"
 
 #import "ChartboostPlugin.h"
-#import <Chartboost/Chartboost.h>
+#import <ChartboostSDK/Chartboost.h>
 #include <AppTrackingTransparency/AppTrackingTransparency.h>
 
 // some macros to make life easier, and code more readable
@@ -29,7 +29,7 @@
 // ----------------------------------------------------------------------------
 
 #define PLUGIN_NAME        "plugin.chartboost"
-#define PLUGIN_VERSION     "2.1.0"
+#define PLUGIN_VERSION     "2.2.0"
 #define PLUGIN_SDK_VERSION [Chartboost getSDKVersion]
 
 static const char EVENT_NAME[]    = "adsRequest";
@@ -86,13 +86,12 @@ static NSString * const AUTO_CACHE_KEY    = @"autoCache";
 @property (nonatomic, assign) CoronaLuaRef coronaListener;             // Reference to the Lua listener
 @property (nonatomic, assign) id<CoronaRuntime> coronaRuntime;           // Pointer to the Corona runtime
 
-@property (nonatomic, strong) NSMutableDictionary<NSString*, NSMutableDictionary<CBLocation, id<CHBAd>>*>* ads;
+@property (nonatomic, strong) NSMutableDictionary<NSString*, NSMutableDictionary<NSString*, id<CHBAd>>*>* ads;
 
-- (id<CHBAd>)getAd:(NSString*)type location:(CBLocation)location;
+- (id<CHBAd>)getAd:(NSString*)type location:(NSString*)location;
 + (NSString*)adTypeFromEvent:(CHBAdEvent*)event;
 - (void)didInitialize:(BOOL)status;
 - (void)dispatchLuaEvent:(NSDictionary *)dict;
-- (NSString *)getJSONStringForLocation:(CBLocation)location reward:(NSInteger)reward errorString:(NSString*)error andCode:(long)errorCode;
 - (void)resumeSession;
 
 @end
@@ -335,24 +334,6 @@ ChartboostPlugin::init( lua_State *L )
 					return 0;
 				}
 			}
-			else if (UTF8IsEqual(key, "customId")) {
-				if (lua_type(L, -1) == LUA_TSTRING) {
-					customId = lua_tostring(L, -1);
-				}
-				else {
-					logMsg(L, ERROR_MSG, MsgFormat(@"options.customId (string) expected, got: %s", luaL_typename(L, -1)));
-					return 0;
-				}
-			}
-			else if (UTF8IsEqual(key, "autoCacheAds")) {
-				if (lua_type(L, -1) == LUA_TBOOLEAN) {
-					autoCacheAds = lua_toboolean(L, -1);
-				}
-				else {
-					logMsg(L, ERROR_MSG, MsgFormat(@"options.autoCacheAds (boolean) expected, got: %s", luaL_typename(L, -1)));
-					return 0;
-				}
-			}
 			else if (UTF8IsEqual(key, "hasUserConsent")) {
 				if (lua_type(L, -1) == LUA_TBOOLEAN) {
 					hasUserConsent = [NSNumber numberWithBool:lua_toboolean(L, -1)];
@@ -402,27 +383,30 @@ ChartboostPlugin::init( lua_State *L )
 			noAtt = false;
 			[ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {
 				[[NSOperationQueue mainQueue] addOperationWithBlock:^{
-					[Chartboost startWithAppId:@(appId) appSignature:@(appSig) completion:^(BOOL status) {
-						[chartboostDelegate didInitialize:status];
-					}];
+                    [Chartboost startWithAppID:@(appId) appSignature:@(appSig) completion:^(CHBStartError * _Nullable error) {
+                        if(error){
+                            [chartboostDelegate didInitialize:false];
+                        }else{
+                            [chartboostDelegate didInitialize:true];
+                        }
+                    }];
 				}];
 			}];
 		}
 	}
 	if(noAtt) {
-		[Chartboost startWithAppId:@(appId) appSignature:@(appSig) completion:^(BOOL status) {
-			[chartboostDelegate didInitialize:status];
-		}];
+        [Chartboost startWithAppID:@(appId) appSignature:@(appSig) completion:^(CHBStartError * _Nullable error) {
+            if(error){
+                [chartboostDelegate didInitialize:false];
+            }else{
+                [chartboostDelegate didInitialize:true];
+            }
+        }];
 	}
 	
 	
 	// all settings must be done *after* SDK init
 	chartboostObjects[AUTO_CACHE_KEY] = @(autoCacheAds);
-	[Chartboost setShouldPrefetchVideoContent: true];
-	[Chartboost setFramework:CBFrameworkCorona withVersion: @(PLUGIN_VERSION)];
-	if (customId != NULL) {
-		[Chartboost setCustomId:@(customId)];
-	}
 	
 	// store data in object dictionary for later use
 	chartboostObjects[APP_ID_KEY] = @(appId);
@@ -499,7 +483,7 @@ ChartboostPlugin::load( lua_State *L )
 	// load an ad
 	[[NSOperationQueue mainQueue] addOperationWithBlock:^{
 		// get location
-		NSString *location = (namedLocation == NULL) ? CBLocationDefault : @(namedLocation);
+		NSString *location = (namedLocation == NULL) ? @"default" : @(namedLocation);
 		[[chartboostDelegate getAd:@(adType) location:location] cache];
 	}];
 	
@@ -561,7 +545,8 @@ ChartboostPlugin::isLoaded( lua_State *L )
 	}
 	
 	// get location
-	NSString *location = (namedLocation == NULL) ? CBLocationDefault : @(namedLocation);
+    
+	NSString *location = (namedLocation == NULL) ? @"deafult" : @(namedLocation);
 	bool isLoaded = false;
 	
 	// check if ad is loaded
@@ -637,7 +622,7 @@ ChartboostPlugin::show( lua_State *L )
 	}
 	
 	// get location
-	NSString *location = (namedLocation == NULL) ? CBLocationDefault : @(namedLocation);
+	NSString *location = (namedLocation == NULL) ? @"deafult" : @(namedLocation);
 	
 	id<CHBAd> ad = [chartboostDelegate getAd:@(adType) location:location];
 	bool isLoaded = [ad isCached];
@@ -688,9 +673,9 @@ ChartboostPlugin::onBackPressed(lua_State *L)
 	return self;
 }
 
--(id<CHBAd>)getAd:(NSString *)type location:(CBLocation)location
+-(id<CHBAd>)getAd:(NSString *)type location:(NSString*)location
 {
-	NSMutableDictionary<CBLocation, id<CHBAd>>* adDict = [self.ads objectForKey:type];
+	NSMutableDictionary<NSString*, id<CHBAd>>* adDict = [self.ads objectForKey:type];
 	if(!adDict) {
 		adDict = [NSMutableDictionary dictionaryWithCapacity:1];
 		[self.ads setObject:adDict forKey:type];
@@ -745,7 +730,7 @@ ChartboostPlugin::onBackPressed(lua_State *L)
 }
 
 // create JSON string from CBlocation, reward and error
-- (NSString *)getJSONStringForLocation:(CBLocation)location reward:(NSInteger)reward errorString:(NSString*)error andCode:(long)errorCode;
+- (NSString *)getJSONStringForLocation:(NSString*)location reward:(NSInteger)reward errorString:(NSString*)error andCode:(long)errorCode;
 {
 	NSMutableDictionary *dataDictionary = [NSMutableDictionary new];
 	dataDictionary[@"location"] = location;
@@ -770,9 +755,13 @@ ChartboostPlugin::onBackPressed(lua_State *L)
 	if ([chartboostObjects[SDK_READY_KEY] boolValue]) {
 		NSString *appID = chartboostObjects[APP_ID_KEY];
 		NSString *appSignature =  chartboostObjects[APP_SIGNATURE_KEY];
-		[Chartboost startWithAppId:appID appSignature:appSignature completion:^(BOOL status) {
-			[chartboostDelegate didInitialize:status];
-		}];
+        [Chartboost startWithAppID:appID appSignature:appSignature completion:^(CHBStartError * _Nullable error) {
+            if(error){
+                [chartboostDelegate didInitialize:false];
+            }else{
+                [chartboostDelegate didInitialize:true];
+            }
+        }];
 	}
 }
 
@@ -817,33 +806,13 @@ ChartboostPlugin::onBackPressed(lua_State *L)
 		};
 	} else
 	{
-		NSString *errorName = @"Unknown CHBShowError";
-		switch (error.code) {
-			case CHBShowErrorCodeInternal:
-				errorName = @"CHBShowErrorCodeInternal";
-				break;
-			case CHBShowErrorCodeSessionNotStarted:
-				errorName = @"CHBShowErrorCodeSessionNotStarted";
-				break;
-			case CHBShowErrorCodeAdAlreadyVisible:
-				errorName = @"CHBShowErrorCodeAdAlreadyVisible";
-				break;
-			case CHBShowErrorCodeInternetUnavailable:
-				errorName = @"CHBShowErrorCodeInternetUnavailable";
-				break;
-			case CHBShowErrorCodePresentationFailure:
-				errorName = @"CHBShowErrorCodePresentationFailure";
-				break;
-			case CHBShowErrorCodeNoCachedAd:
-				errorName = @"CHBShowErrorCodeNoCachedAd";
-				break;
-		}
+        NSError *mainError = (NSError *)error;
 		coronaEvent = @{
 			@(CoronaEventPhaseKey()) : PHASE_FAILED,
 			@(CoronaEventTypeKey()) : [ChartboostDelegate adTypeFromEvent:event],
 			@(CoronaEventIsErrorKey()) : @(true),
 			@(CoronaEventResponseKey()) : RESPONSE_LOAD_FAILED,
-			CORONA_EVENT_DATA_KEY : [self getJSONStringForLocation:event.ad.location reward:NO_DATA errorString:errorName andCode:error.code]
+            CORONA_EVENT_DATA_KEY : [self getJSONStringForLocation:event.ad.location reward:NO_DATA errorString:mainError.localizedDescription andCode:mainError.code]
 		};
 	}
 	[self dispatchLuaEvent:coronaEvent];
@@ -882,36 +851,13 @@ ChartboostPlugin::onBackPressed(lua_State *L)
 	}
 	else
 	{
-		NSString *errorName = @"Unknown CHBCacheError";
-		switch (error.code) {
-			case CHBCacheErrorCodeInternal:
-				errorName = @"CHBCacheErrorCodeInternal";
-				break;
-			case CHBCacheErrorCodeInternetUnavailable:
-				errorName = @"CHBCacheErrorCodeInternetUnavailable";
-				break;
-			case CHBCacheErrorCodeNetworkFailure:
-				errorName = @"CHBCacheErrorCodeNetworkFailure";
-				break;
-			case CHBCacheErrorCodeNoAdFound:
-				errorName = @"CHBCacheErrorCodeNoAdFound";
-				break;
-			case CHBCacheErrorCodeSessionNotStarted:
-				errorName = @"CHBCacheErrorCodeSessionNotStarted";
-				break;
-			case CHBCacheErrorCodeAssetDownloadFailure:
-				errorName = @"CHBCacheErrorCodeAssetDownloadFailure";
-				break;
-			case CHBCacheErrorCodePublisherDisabled:
-				errorName = @"CHBCacheErrorCodePublisherDisabled";
-				break;
-		}
+        NSError *mainError = (NSError *)error;
 		coronaEvent = @{
 			@(CoronaEventPhaseKey()) : PHASE_FAILED,
 			@(CoronaEventTypeKey()) : [ChartboostDelegate adTypeFromEvent:event],
 			@(CoronaEventIsErrorKey()) : @(true),
 			@(CoronaEventResponseKey()) : RESPONSE_LOAD_FAILED,
-			CORONA_EVENT_DATA_KEY : [self getJSONStringForLocation:event.ad.location reward:NO_DATA errorString:errorName andCode:error.code]
+            CORONA_EVENT_DATA_KEY : [self getJSONStringForLocation:event.ad.location reward:NO_DATA errorString:mainError.localizedDescription andCode:mainError.code]
 		};
 	}
 	[self dispatchLuaEvent:coronaEvent];

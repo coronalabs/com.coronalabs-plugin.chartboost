@@ -2,11 +2,13 @@ buildscript {
     repositories {
         google()
         jcenter()
+        mavenCentral()
+        maven( url="https://cboost.jfrog.io/artifactory/chartboost-ads/" )
     }
     dependencies {
-        classpath(kotlin("gradle-plugin", version = "1.3.70"))
-        classpath("com.android.tools.build:gradle:3.5.4")
-        classpath("com.beust:klaxon:5.0.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
+        classpath("com.android.tools.build:gradle:8.5.1")
+        classpath("com.beust:klaxon:5.5")
     }
 }
 
@@ -14,8 +16,9 @@ allprojects {
     repositories {
         google()
         jcenter()
-        maven(url = "https://chartboostmobile.bintray.com/Chartboost")
-        val nativeDir = if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+        mavenCentral()
+        // maven(url = "https:// some custom repo")
+        val nativeDir = if (System.getProperty("os.name").lowercase().contains("windows")) {
             System.getenv("CORONA_ROOT")
         } else {
             "${System.getenv("HOME")}/Library/Application Support/Corona/Native/"
@@ -27,5 +30,5 @@ allprojects {
 }
 
 tasks.register<Delete>("clean") {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory.asFile.get())
 }

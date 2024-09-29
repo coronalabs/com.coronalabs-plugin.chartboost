@@ -3,15 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A4E253C9166D716900DCDC2C /* ChartboostPlugin.mm in Sources */ = {isa = PBXBuildFile; fileRef = A447B617165D734C009EA762 /* ChartboostPlugin.mm */; };
-		F5987CE92511435600D1D08F /* Chartboost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5987CE82511435600D1D08F /* Chartboost.framework */; };
-		F5987CEB2511438C00D1D08F /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5987CEA2511438C00D1D08F /* StoreKit.framework */; };
-		F5987CED2511439000D1D08F /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5987CEC2511439000D1D08F /* WebKit.framework */; };
-		F5D8037E252896350090BC72 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5D8037D252896350090BC72 /* AppTrackingTransparency.framework */; };
+		DBA0F3182CA8984000575026 /* ChartboostPlugin.mm in Sources */ = {isa = PBXBuildFile; fileRef = DBA0F3172CA8984000575026 /* ChartboostPlugin.mm */; };
+		DBA0F3282CA8A14000575026 /* ChartboostSDK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBA0F3272CA8A14000575026 /* ChartboostSDK.xcframework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,14 +24,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		A447B616165D734C009EA762 /* ChartboostPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChartboostPlugin.h; path = Plugin/ChartboostPlugin.h; sourceTree = "<group>"; };
-		A447B617165D734C009EA762 /* ChartboostPlugin.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ChartboostPlugin.mm; path = Plugin/ChartboostPlugin.mm; sourceTree = "<group>"; };
 		A4E253B6166D6FB300DCDC2C /* libplugin_chartboost.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libplugin_chartboost.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		DBA0F3162CA8984000575026 /* ChartboostPlugin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChartboostPlugin.h; sourceTree = "<group>"; };
+		DBA0F3172CA8984000575026 /* ChartboostPlugin.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ChartboostPlugin.mm; sourceTree = "<group>"; };
+		DBA0F3272CA8A14000575026 /* ChartboostSDK.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:F38H382JLK:CHARTBOOST, Inc."; lastKnownFileType = wrapper.xcframework; name = ChartboostSDK.xcframework; path = EmbeddedFrameworks/ChartboostSDK.xcframework; sourceTree = "<group>"; };
 		F572F81A1EE0705B001BC814 /* CoronaNative.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = CoronaNative.xcconfig; sourceTree = "<group>"; };
-		F5987CE82511435600D1D08F /* Chartboost.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Chartboost.framework; path = EmbeddedFrameworks/Chartboost.framework; sourceTree = "<group>"; };
-		F5987CEA2511438C00D1D08F /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
-		F5987CEC2511439000D1D08F /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/WebKit.framework; sourceTree = DEVELOPER_DIR; };
-		F5D8037D252896350090BC72 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,10 +36,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F5D8037E252896350090BC72 /* AppTrackingTransparency.framework in Frameworks */,
-				F5987CED2511439000D1D08F /* WebKit.framework in Frameworks */,
-				F5987CEB2511438C00D1D08F /* StoreKit.framework in Frameworks */,
-				F5987CE92511435600D1D08F /* Chartboost.framework in Frameworks */,
+				DBA0F3282CA8A14000575026 /* ChartboostSDK.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,8 +46,8 @@
 		A447B609165D72A6009EA762 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				A447B616165D734C009EA762 /* ChartboostPlugin.h */,
-				A447B617165D734C009EA762 /* ChartboostPlugin.mm */,
+				DBA0F3162CA8984000575026 /* ChartboostPlugin.h */,
+				DBA0F3172CA8984000575026 /* ChartboostPlugin.mm */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -64,10 +55,10 @@
 		A484110E15114F700074BD57 = {
 			isa = PBXGroup;
 			children = (
+				DBA0F3272CA8A14000575026 /* ChartboostSDK.xcframework */,
 				A447B609165D72A6009EA762 /* Source */,
 				F54A40C01EE083A300AF417D /* CoronaNative */,
 				A484111A15114F700074BD57 /* Products */,
-				F5987CE72511435600D1D08F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -85,17 +76,6 @@
 				F572F81A1EE0705B001BC814 /* CoronaNative.xcconfig */,
 			);
 			name = CoronaNative;
-			sourceTree = "<group>";
-		};
-		F5987CE72511435600D1D08F /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				F5D8037D252896350090BC72 /* AppTrackingTransparency.framework */,
-				F5987CEC2511439000D1D08F /* WebKit.framework */,
-				F5987CEA2511438C00D1D08F /* StoreKit.framework */,
-				F5987CE82511435600D1D08F /* Chartboost.framework */,
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -168,7 +148,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A4E253C9166D716900DCDC2C /* ChartboostPlugin.mm in Sources */,
+				DBA0F3182CA8984000575026 /* ChartboostPlugin.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -212,7 +192,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -248,7 +228,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -259,15 +239,10 @@
 		A4E253C0166D6FB300DCDC2C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DSTROOT = /tmp/plugin_library.dst;
 				ENABLE_BITCODE = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/EmbeddedFrameworks",
-				);
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				OTHER_LDFLAGS = "-ObjC";
@@ -279,16 +254,10 @@
 		A4E253C1166D6FB300DCDC2C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DSTROOT = /tmp/plugin_library.dst;
 				ENABLE_BITCODE = NO;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/EmbeddedFrameworks",
-				);
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				OTHER_LDFLAGS = "-ObjC";

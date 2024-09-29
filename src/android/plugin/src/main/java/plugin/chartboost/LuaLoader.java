@@ -18,16 +18,12 @@ import com.ansca.corona.CoronaRuntime;
 import com.ansca.corona.CoronaRuntimeListener;
 import com.ansca.corona.CoronaRuntimeTask;
 import com.ansca.corona.CoronaRuntimeTaskDispatcher;
-import com.chartboost.sdk.CBLocation;
-import com.chartboost.sdk.Chartboost;
-import com.chartboost.sdk.ChartboostDelegate;
-import com.chartboost.sdk.Model.CBError;
-import com.naef.jnlua.JavaFunction;
+import com.chartboost.sdk.Chartboost;import com.chartboost.sdk.ads.Ad;import com.chartboost.sdk.ads.Interstitial;import com.chartboost.sdk.ads.Rewarded;import com.chartboost.sdk.callbacks.InterstitialCallback;import com.chartboost.sdk.callbacks.RewardedCallback;import com.chartboost.sdk.events.CacheError;import com.chartboost.sdk.events.CacheEvent;import com.chartboost.sdk.events.ClickError;import com.chartboost.sdk.events.ClickEvent;import com.chartboost.sdk.events.DismissEvent;import com.chartboost.sdk.events.ImpressionEvent;import com.chartboost.sdk.events.RewardEvent;import com.chartboost.sdk.events.ShowError;import com.chartboost.sdk.events.ShowEvent;import com.chartboost.sdk.privacy.model.DataUseConsent;import com.chartboost.sdk.privacy.model.GDPR;import com.naef.jnlua.JavaFunction;
 import com.naef.jnlua.LuaState;
 import com.naef.jnlua.LuaType;
 import com.naef.jnlua.NamedJavaFunction;
 
-import org.json.JSONObject;
+import org.jetbrains.annotations.NotNull;import org.jetbrains.annotations.Nullable;import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -105,6 +101,8 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 
   // Corona APP ID / SIG
 
+
+  Map<String, Object> coronaAdsStore = new HashMap<>();
   // delegates
   private static CoronaChartboostDelegate coronaChartboostDelegate = null;
 
@@ -237,14 +235,13 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
   @Override
   public void onExiting(CoronaRuntime runtime)
   {
-    Chartboost.setDelegate(null);
-
     CoronaLua.deleteRef(runtime.getLuaState(), coronaListener);
     coronaListener = CoronaLua.REFNIL;
     coronaRuntime = null;
     coronaRuntimeTaskDispatcher = null;
 
     // release all objects
+    coronaAdsStore.clear();
     chartboostObjects.clear();
     validAdTypes.clear();
     coronaChartboostDelegate = null;
@@ -412,15 +409,6 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
               return 0;
             }
           }
-          else if (key.equals("autoCacheAds")) {
-            if (luaState.type(-1) == LuaType.BOOLEAN) {
-              autoCacheAds = luaState.toBoolean(-1);
-            }
-            else {
-              logMsg(ERROR_MSG, "options.autoCacheAds expected (boolean). Got " + luaState.typeName(-1));
-              return 0;
-            }
-          }
           else if (key.equals("hasUserConsent")) {
             if (luaState.type(-1) == LuaType.BOOLEAN) {
               hasUserConsent = luaState.toBoolean(-1);
@@ -472,31 +460,24 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
           public void run() {
             if (fHasUserConsent != null) {
               if (fHasUserConsent) {
-                Chartboost.setPIDataUseConsent(applicationContext, Chartboost.CBPIDataUseConsent.YES_BEHAVIORAL);
+                DataUseConsent dataUseConsent = new GDPR(GDPR.GDPR_CONSENT.BEHAVIORAL);
+                Chartboost.addDataUseConsent(applicationContext, dataUseConsent);
               } else {
-                Chartboost.setPIDataUseConsent(applicationContext, Chartboost.CBPIDataUseConsent.NO_BEHAVIORAL);
+                DataUseConsent dataUseConsent = new GDPR(GDPR.GDPR_CONSENT.NON_BEHAVIORAL);
+                Chartboost.addDataUseConsent(applicationContext, dataUseConsent);
               }
-            } else {
-              Chartboost.setPIDataUseConsent(applicationContext, Chartboost.CBPIDataUseConsent.UNKNOWN);
+            }else {
+              Chartboost.clearDataUseConsent(applicationContext, GDPR.GDPR_STANDARD);
             }
 
             // initialize SDK
-            Chartboost.startWithAppId(applicationContext, fAppId, fAppSignature);
-
-            // setup must be done after SDK init
-            Chartboost.setAutoCacheAds(fAutoCacheAds);
-            Chartboost.setShouldPrefetchVideoContent(true);
-            Chartboost.setShouldRequestInterstitialsInFirstSession(true);
-            if (fCustomId != null) {
-              Chartboost.setCustomId(fCustomId);
-            }
-            Chartboost.setFramework(Chartboost.CBFramework.CBFrameworkCorona, PLUGIN_VERSION);
-            Chartboost.setDelegate(coronaChartboostDelegate);
-
-            // send init event on soft boot as the Chartboost SDK doesn't do it
-            if (softBoot) {
-              coronaChartboostDelegate.didInitialize();
-            }
+            Chartboost.startWithAppId(CoronaEnvironment.getApplicationContext(), fAppId, fAppSignature, startError -> {
+              if (startError == null) {
+                didInitialize("");
+              } else {
+                didInitialize(startError.getCode().name());
+              }
+            });
           }
         };
 
@@ -581,13 +562,17 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
         // Create a new runnable object to invoke our activity
         Runnable runnableActivity = new Runnable() {
           public void run() {
-            String location = (fNamedLocation != null) ? fNamedLocation : CBLocation.LOCATION_DEFAULT;
+            String location = (fNamedLocation != null) ? fNamedLocation : "default";
 
             if (fAdType.equals(TYPE_REWARDED_VIDEO)) {
-              Chartboost.cacheRewardedVideo(location);
+              Rewarded chartboostRewarded = new Rewarded(location, coronaChartboostDelegate, null);
+              chartboostRewarded.cache();
+              coronaAdsStore.put(("REWARED/"+location), chartboostRewarded);
             }
             else if (fAdType.equals(TYPE_INTERSTITIAL)) {
-              Chartboost.cacheInterstitial(location);
+              Interstitial chartboostInterstitial = new Interstitial(location, coronaChartboostDelegate, null);
+              chartboostInterstitial.cache();
+              coronaAdsStore.put(("INTERSTITIAL/"+location), chartboostInterstitial);
             }
             else {
               logMsg(ERROR_MSG, "Invalid ad type '" + fAdType + "'");
@@ -667,13 +652,21 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
       }
 
       boolean isLoaded = false;
-      String location = (namedLocation != null) ? namedLocation : CBLocation.LOCATION_DEFAULT;
+      String location = (namedLocation != null) ? namedLocation : "default";
 
       if (adType.equals(TYPE_REWARDED_VIDEO)) {
-        isLoaded = Chartboost.hasRewardedVideo(location);
+        if(coronaAdsStore.get(("REWARED/"+location)) == null) {
+          luaState.pushBoolean(isLoaded);
+          return 1;
+        }
+        isLoaded = ((Ad) coronaAdsStore.get(("REWARED/"+location))).isCached();
       }
       else if (adType.equals(TYPE_INTERSTITIAL)) {
-        isLoaded = Chartboost.hasInterstitial(location);
+        if(coronaAdsStore.get(("INTERSTITIAL/"+location)) == null) {
+          luaState.pushBoolean(isLoaded);
+          return 1;
+        }
+        isLoaded = ((Ad) coronaAdsStore.get(("INTERSTITIAL/"+location))).isCached();
       }
       else {
         logMsg(ERROR_MSG, "Invalid ad type '" + adType + "'");
@@ -708,22 +701,9 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
     @Override
     public int invoke( LuaState luaState )  {
       functionSignature = "chartboost.isAdVisible()";
+      luaState.pushBoolean(false);
 
-      if (! isSDKInitialized()) {
-        return 0;
-      }
-
-      // get number of arguments
-      int nargs = luaState.getTop();
-      if (nargs != 0) {
-        logMsg(ERROR_MSG, "Expected no arguments, got " + nargs);
-        return 0;
-      }
-
-      // return true if an ad is visible
-      luaState.pushBoolean(Chartboost.isAnyViewVisible());
-
-      return 1;
+      return 0;
     }
   }
 
@@ -792,13 +772,17 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
       }
 
       boolean isLoaded = false;
-      String location = (namedLocation != null) ? namedLocation : CBLocation.LOCATION_DEFAULT;
+      String location = (namedLocation != null) ? namedLocation : "default";
 
       if (adType.equals(TYPE_REWARDED_VIDEO)) {
-        isLoaded = Chartboost.hasRewardedVideo(location);
+        if(coronaAdsStore.get(("REWARED/"+location)) != null) {
+          isLoaded = ((Ad) coronaAdsStore.get(("REWARED/"+location))).isCached();
+        }
       }
       else if (adType.equals(TYPE_INTERSTITIAL)) {
-        isLoaded = Chartboost.hasInterstitial(location);
+        if(coronaAdsStore.get(("INTERSTITIAL/"+location)) != null) {
+          isLoaded = ((Ad) coronaAdsStore.get(("INTERSTITIAL/"+location))).isCached();
+        }
       }
       else {
         logMsg(ERROR_MSG, "Invalid ad type '" + adType + "'");
@@ -822,10 +806,12 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
         Runnable runnableActivity = new Runnable() {
           public void run() {
             if (fAdType.equals(TYPE_REWARDED_VIDEO)) {
-              Chartboost.showRewardedVideo(fLocation);
+              Rewarded ad = (Rewarded) coronaAdsStore.get(("REWARED/"+location));
+              ad.show();
             }
             else if (fAdType.equals(TYPE_INTERSTITIAL)) {
-              Chartboost.showInterstitial(fLocation);
+              Interstitial ad = (Interstitial) coronaAdsStore.get(("INTERSTITIAL/"+location));
+              ad.show();
             }
             else {
               logMsg(ERROR_MSG, "Invalid ad type '" + fAdType + "'");
@@ -916,282 +902,41 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
     public int invoke( LuaState luaState ) {
       functionSignature = "chartboost.onBackPressed()";
 
-      if (! isSDKInitialized()) {
-        return 0;
-      }
+      logMsg(WARNING_MSG, "This function is not longer supported");
 
-      // get number of arguments
-      int nargs = luaState.getTop();
-      if (nargs != 0) {
-        logMsg(ERROR_MSG, "Expected no arguments, got " + nargs);
-        return 0;
-      }
-
-      // See if the back key has been pressed
-      boolean result = Chartboost.onBackPressed();
-
-      luaState.pushBoolean(result);
-
-      return 1;
+      return 0;
     }
   }
 
   // -------------------------------------------------------------------
   // Delegates
   // -------------------------------------------------------------------
-
-  class CoronaChartboostDelegate extends ChartboostDelegate
+  private void didInitialize(String error)
   {
-    @Override
-    public void didInitialize()
-    {
-      // flag the SDK as ready for API calls
-      chartboostObjects.put(SDK_READY_KEY, true);
-      softBoot = true;
+    // flag the SDK as ready for API calls
+    chartboostObjects.put(SDK_READY_KEY, true);
+    softBoot = true;
 
-      // send Corona Lua event
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_INIT);
-      dispatchLuaEvent(coronaEvent);
+    // send Corona Lua event
+    Map<String, Object> coronaEvent = new HashMap<>();
+
+    if(error == ""){
+      coronaEvent.put("isError", false);
+    }else{
+      coronaEvent.put(DATA_ERRORMSG_KEY, error);
     }
+    coronaEvent.put(EVENT_PHASE_KEY, PHASE_INIT);
+    dispatchLuaEvent(coronaEvent);
+  }
+  class CoronaChartboostDelegate implements RewardedCallback, InterstitialCallback
+  {
 
-    // Interstitials
-    @Override
-    public boolean shouldRequestInterstitial(String location)
-    {
-      return true;
-    }
-
-    @Override
-    public boolean shouldDisplayInterstitial(String location)
-    {
-      // Called just before an ad is displayed. The Lua event must be sent here
-      // otherwise the event does not fire until *after* the ad is closed
-
+    @Override public void onRewardEarned(@NotNull RewardEvent rewardEvent) {
       // create data
       JSONObject data = new JSONObject();
       try {
-        data.put(DATA_LOCATION_KEY, location);
-      }
-      catch (Exception e) {
-        System.err.println();
-      }
-
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_DISPLAYED);
-      coronaEvent.put(EVENT_TYPE_KEY, TYPE_INTERSTITIAL);
-      coronaEvent.put(EVENT_DATA_KEY, data.toString());
-      dispatchLuaEvent(coronaEvent);
-
-      // we should always display an ad
-      return true;
-    }
-
-    @Override
-    public void didCacheInterstitial(String location)
-    {
-      // create data
-      JSONObject data = new JSONObject();
-      try {
-        data.put(DATA_LOCATION_KEY, location);
-      }
-      catch (Exception e) {
-        System.err.println();
-      }
-
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_LOADED);
-      coronaEvent.put(EVENT_TYPE_KEY, TYPE_INTERSTITIAL);
-      coronaEvent.put(EVENT_DATA_KEY, data.toString());
-      dispatchLuaEvent(coronaEvent);
-    }
-
-    @Override
-    public void didFailToLoadInterstitial(String location, CBError.CBImpressionError error) {
-      // create data
-      JSONObject data = new JSONObject();
-      try {
-        data.put(DATA_LOCATION_KEY, location);
-        data.put(DATA_ERRORMSG_KEY, error.name());
-        data.put(DATA_ERRORCODE_KEY, error.ordinal());
-      }
-      catch (Exception e) {
-        System.err.println();
-      }
-
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_FAILED);
-      coronaEvent.put(EVENT_TYPE_KEY, TYPE_INTERSTITIAL);
-      coronaEvent.put(CoronaLuaEvent.RESPONSE_KEY, RESPONSE_LOAD_FAILED);
-      coronaEvent.put(EVENT_DATA_KEY, data.toString());
-      coronaEvent.put(CoronaLuaEvent.ISERROR_KEY, true);
-      dispatchLuaEvent(coronaEvent);
-    }
-
-    @Override
-    public void didDismissInterstitial(String location) {
-      // No need to use. Called on Close/Click
-    }
-
-    @Override
-    public void didCloseInterstitial(String location) {
-      // create data
-      JSONObject data = new JSONObject();
-      try {
-        data.put(DATA_LOCATION_KEY, location);
-      }
-      catch (Exception e) {
-        System.err.println();
-      }
-
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_CLOSED);
-      coronaEvent.put(EVENT_TYPE_KEY, TYPE_INTERSTITIAL);
-      coronaEvent.put(EVENT_DATA_KEY, data.toString());
-      dispatchLuaEvent(coronaEvent);
-    }
-
-    @Override
-    public void didClickInterstitial(String location) {
-      // create data
-      JSONObject data = new JSONObject();
-      try {
-        data.put(DATA_LOCATION_KEY, location);
-      }
-      catch (Exception e) {
-        System.err.println();
-      }
-
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_CLICKED);
-      coronaEvent.put(EVENT_TYPE_KEY, TYPE_INTERSTITIAL);
-      coronaEvent.put(EVENT_DATA_KEY, data.toString());
-      dispatchLuaEvent(coronaEvent);
-    }
-
-    @Override
-    public void didDisplayInterstitial(String location) {
-      // event sent in shouldDisplayInterstitial()
-    }
-
-    // Rewarded Video
-    @Override
-    public boolean shouldDisplayRewardedVideo(String location) {
-      // Called just before an ad is displayed. The Lua event must be sent here
-      // otherwise the event does not fire until *after* the ad is closed
-
-      // create data
-      JSONObject data = new JSONObject();
-      try {
-        data.put(DATA_LOCATION_KEY, location);
-      }
-      catch (Exception e) {
-        System.err.println();
-      }
-
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_DISPLAYED);
-      coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
-      coronaEvent.put(EVENT_DATA_KEY, data.toString());
-      dispatchLuaEvent(coronaEvent);
-
-      // We should always display ad ad
-      return true;
-    }
-
-    @Override
-    public void didCacheRewardedVideo(String location) {
-      // create data
-      JSONObject data = new JSONObject();
-      try {
-        data.put(DATA_LOCATION_KEY, location);
-      }
-      catch (Exception e) {
-        System.err.println();
-      }
-
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_LOADED);
-      coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
-      coronaEvent.put(EVENT_DATA_KEY, data.toString());
-      dispatchLuaEvent(coronaEvent);
-    }
-
-    @Override
-    public void didFailToLoadRewardedVideo(String location, CBError.CBImpressionError error) {
-      // create data
-      JSONObject data = new JSONObject();
-      try {
-        data.put(DATA_LOCATION_KEY, location);
-        data.put(DATA_ERRORMSG_KEY, error.name());
-        data.put(DATA_ERRORCODE_KEY, error.ordinal());
-      }
-      catch (Exception e) {
-        System.err.println();
-      }
-
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_FAILED);
-      coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
-      coronaEvent.put(CoronaLuaEvent.RESPONSE_KEY, RESPONSE_LOAD_FAILED);
-      coronaEvent.put(EVENT_DATA_KEY, data.toString());
-      coronaEvent.put(CoronaLuaEvent.ISERROR_KEY, true);
-      dispatchLuaEvent(coronaEvent);
-    }
-
-    @Override
-    public void didDismissRewardedVideo( String location ) {
-      // No need to use. Called on Close/Click
-    }
-
-    @Override
-    public void didCloseRewardedVideo( String location ) {
-      // create data
-      JSONObject data = new JSONObject();
-      try {
-        data.put(DATA_LOCATION_KEY, location);
-      }
-      catch (Exception e) {
-        System.err.println();
-      }
-
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_CLOSED);
-      coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
-      coronaEvent.put(EVENT_DATA_KEY, data.toString());
-      dispatchLuaEvent(coronaEvent);
-    }
-
-    @Override
-    public void didClickRewardedVideo(String location) {
-      // create data
-      JSONObject data = new JSONObject();
-      try {
-        data.put(DATA_LOCATION_KEY, location);
-      }
-      catch (Exception e) {
-        System.err.println();
-      }
-
-      Map<String, Object> coronaEvent = new HashMap<>();
-      coronaEvent.put(EVENT_PHASE_KEY, PHASE_CLICKED);
-      coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
-      coronaEvent.put(EVENT_DATA_KEY, data.toString());
-      dispatchLuaEvent(coronaEvent);
-    }
-
-    @Override
-    public void didDisplayRewardedVideo( String location ) {
-      // event sent in shouldDisplayRewardedVideo()
-    }
-
-    @Override
-    public void didCompleteRewardedVideo(String location, int reward) {
-      // create data
-      JSONObject data = new JSONObject();
-      try {
-        data.put(DATA_LOCATION_KEY, location);
-        data.put(DATA_REWARD_KEY, reward);
+        data.put(DATA_LOCATION_KEY, rewardEvent.getAd().getLocation());
+        data.put(DATA_REWARD_KEY, rewardEvent.getReward());
       }
       catch (Exception e) {
         System.err.println();
@@ -1202,6 +947,123 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
       coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
       coronaEvent.put(EVENT_DATA_KEY, data.toString());
       dispatchLuaEvent(coronaEvent);
-    }
-  }
+    }@Override public void onAdDismiss(@NotNull DismissEvent dismissEvent) {
+      // create data
+      JSONObject data = new JSONObject();
+      try {
+        data.put(DATA_LOCATION_KEY, dismissEvent.getAd().getLocation());
+      }
+      catch (Exception e) {
+        System.err.println();
+      }
+      Map<String, Object> coronaEvent = new HashMap<>();
+      coronaEvent.put(EVENT_PHASE_KEY, PHASE_CLOSED);
+      if(dismissEvent.getAd() instanceof Interstitial){
+        coronaEvent.put(EVENT_TYPE_KEY, TYPE_INTERSTITIAL);
+      }else if(dismissEvent.getAd() instanceof Rewarded){
+        coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
+      }
+      coronaEvent.put(EVENT_DATA_KEY, data.toString());
+      dispatchLuaEvent(coronaEvent);
+    }@Override public void onAdLoaded(@NotNull CacheEvent cacheEvent,@Nullable CacheError cacheError) {
+      // create data
+      JSONObject data = new JSONObject();
+      try {
+        data.put(DATA_LOCATION_KEY, cacheEvent.getAd().getLocation());
+      }
+      catch (Exception e) {
+        System.err.println();
+      }
+      Map<String, Object> coronaEvent = new HashMap<>();
+      if(cacheError != null){
+        try {
+          data.put(DATA_ERRORMSG_KEY, cacheError.getException().getLocalizedMessage());
+          data.put(DATA_ERRORCODE_KEY, cacheError.getCode());
+        }
+        catch (Exception e) {
+          System.err.println();
+        }
+        coronaEvent.put(EVENT_PHASE_KEY, PHASE_FAILED);
+      }else{
+        coronaEvent.put(EVENT_PHASE_KEY, PHASE_LOADED);
+      }
+
+      if(cacheEvent.getAd() instanceof Interstitial){
+        coronaEvent.put(EVENT_TYPE_KEY, TYPE_INTERSTITIAL);
+      }else if(cacheEvent.getAd() instanceof Rewarded){
+        coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
+      }
+      coronaEvent.put(EVENT_DATA_KEY, data.toString());
+      dispatchLuaEvent(coronaEvent);
+    }@Override public void onAdRequestedToShow(@NotNull ShowEvent showEvent) {
+      JSONObject data = new JSONObject();
+      try {
+        data.put(DATA_LOCATION_KEY, showEvent.getAd().getLocation());
+      }
+      catch (Exception e) {
+        System.err.println();
+      }
+
+      Map<String, Object> coronaEvent = new HashMap<>();
+      coronaEvent.put(EVENT_PHASE_KEY, PHASE_DISPLAYED);
+      if(showEvent.getAd() instanceof Interstitial){
+        coronaEvent.put(EVENT_TYPE_KEY, TYPE_INTERSTITIAL);
+      }else if(showEvent.getAd() instanceof Rewarded){
+        coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
+      }
+      coronaEvent.put(EVENT_DATA_KEY, data.toString());
+      dispatchLuaEvent(coronaEvent);
+
+    }@Override public void onAdShown(@NotNull ShowEvent showEvent,@Nullable ShowError showError) {
+      // create data
+      JSONObject data = new JSONObject();
+      try {
+        data.put(DATA_LOCATION_KEY, showEvent.getAd().getLocation());
+      }
+      catch (Exception e) {
+        System.err.println();
+      }
+
+      Map<String, Object> coronaEvent = new HashMap<>();
+      if(showError != null){
+        try {
+          data.put(DATA_ERRORMSG_KEY, showError.getException().getLocalizedMessage());
+          data.put(DATA_ERRORCODE_KEY, showError.getCode());
+        }
+        catch (Exception e) {
+          System.err.println();
+        }
+        coronaEvent.put(EVENT_PHASE_KEY, PHASE_FAILED);
+      }else{
+        coronaEvent.put(EVENT_PHASE_KEY, PHASE_CLOSED);
+      }
+      if(showEvent.getAd() instanceof Interstitial){
+        coronaEvent.put(EVENT_TYPE_KEY, TYPE_INTERSTITIAL);
+      }else if(showEvent.getAd() instanceof Rewarded){
+        coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
+      }
+      coronaEvent.put(EVENT_DATA_KEY, data.toString());
+      dispatchLuaEvent(coronaEvent);
+    }@Override public void onAdClicked(@NotNull ClickEvent clickEvent,@Nullable ClickError clickError) {
+      // create data
+      JSONObject data = new JSONObject();
+      try {
+        data.put(DATA_LOCATION_KEY, clickEvent.getAd().getLocation());
+      }
+      catch (Exception e) {
+        System.err.println();
+      }
+
+      Map<String, Object> coronaEvent = new HashMap<>();
+      coronaEvent.put(EVENT_PHASE_KEY, PHASE_CLICKED);
+      if(clickEvent.getAd() instanceof Interstitial){
+        coronaEvent.put(EVENT_TYPE_KEY, TYPE_INTERSTITIAL);
+      }else if(clickEvent.getAd() instanceof Rewarded){
+        coronaEvent.put(EVENT_TYPE_KEY, TYPE_REWARDED_VIDEO);
+      }
+      coronaEvent.put(EVENT_DATA_KEY, data.toString());
+      dispatchLuaEvent(coronaEvent);
+    }@Override public void onImpressionRecorded(@NotNull ImpressionEvent impressionEvent) {
+
+    }}
 }

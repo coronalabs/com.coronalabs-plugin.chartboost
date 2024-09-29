@@ -1,12 +1,11 @@
+android.defaultConfig {
+    minSdkVersion Math.max(minSdkVersion?.apiLevel ?: 15, 16)
+}
+ext["minSdkVersion"] = Math.max(ext.find("minSdkVersion")?:15, 19)
 repositories {
   mavenCentral()
+  maven { url 'https://cboost.jfrog.io/artifactory/chartboost-ads/' }
 }
 dependencies {
-  implementation 'com.chartboost:chartboost-sdk:8.3.0'
-}
-android {
-   compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-   }
+  implementation 'com.chartboost:chartboost-sdk:9.7.0'
 }
